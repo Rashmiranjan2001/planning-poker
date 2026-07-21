@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planning Poker</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="app"></div>
+
+  <template id="tpl-landing">
+    <div class="landing">
+      <div class="hero">
+        <div class="hero-suits">
+          <span>&spades;</span><span class="red">&hearts;</span><span>&clubs;</span><span class="red">&diams;</span>
+        </div>
+        <h1>Planning Poker</h1>
+        <div class="tagline">Anonymous story point voting for your scrum team</div>
+      </div>
+      <div class="cards">
+        <div class="card-panel">
+          <h2>Deal a new table</h2>
+          <input id="createName" type="text" placeholder="Your name" maxlength="40" />
+          <button id="createBtn" class="primary">Create room</button>
+        </div>
+        <div class="divider">or</div>
+        <div class="card-panel">
+          <h2>Take a seat</h2>
+          <input id="joinCode" type="text" placeholder="Room code" maxlength="5" />
+          <input id="joinName" type="text" placeholder="Your name" maxlength="40" />
+          <button id="joinBtn" class="secondary">Join room</button>
+          <div id="joinError" class="error"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-room">
+    <div class="room">
+      <header class="room-header">
+        <div class="brand">
+          <span class="suit">&spades;</span>
+          <span class="suit red">&hearts;</span>
+          <span>Planning Poker</span>
+        </div>
+        <div class="room-info">
+          <span class="label">Room</span>
+          <span class="code" id="roomCode"></span>
+          <button id="copyLink" class="link-btn">Copy link</button>
+          <span id="copyStatus" class="copied"></span>
+          <button id="leaveBtn" class="link-btn muted">Leave</button>
+        </div>
+      </header>
+
+      <section class="ticket-bar">
+        <div class="ticket-bar-inner">
+          <span class="ticket-label">Current Story</span>
+          <span id="ticketDisplay" class="ticket-display"></span>
+          <button id="editTicketBtn" class="link-btn edit-btn hidden" title="Edit story">✎ Edit</button>
+          <div id="ticketEditor" class="ticket-editor hidden">
+            <input id="ticketInput" type="text" placeholder="Jira ID or title" maxlength="200" />
+            <button id="setTicketBtn" class="primary">Set</button>
+            <button id="cancelTicketBtn" class="link-btn muted hidden">Cancel</button>
+          </div>
+          <div id="hostControls" class="host-controls hidden">
+            <button id="revealBtn" class="primary">Reveal votes</button>
+            <button id="resetBtn" class="secondary">Reset round</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="table-arrangement">
+        <div class="seats-row" id="seatsTop"></div>
+        <div class="middle-row">
+          <div class="seats-col" id="seatsLeft"></div>
+          <div class="poker-table">
+            <div class="table-center">
+              <div class="brand-mark">
+                <span>&spades;</span> <span class="red">&hearts;</span> <span>&clubs;</span> <span class="red">&diams;</span>
+              </div>
+              <div id="tableStatus">
+                <div class="table-title">The Table</div>
+                <div class="table-status" id="tableStatusText">Waiting for votes…</div>
+              </div>
+            </div>
+          </div>
+          <div class="seats-col" id="seatsRight"></div>
+        </div>
+        <div class="seats-row" id="seatsBottom"></div>
+      </div>
+
+      <section class="your-hand">
+        <div class="hand-label" id="handLabel">Your hand</div>
+        <div id="cardRow" class="card-row"></div>
+      </section>
+    </div>
+  </template>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
