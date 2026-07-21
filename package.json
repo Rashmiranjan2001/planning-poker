@@ -1,5 +1,5 @@
 {
-  "name": "planning-poker",
+  "name": "estimate-me",
   "version": "1.0.0",
   "description": "Anonymous story point voting for scrum teams",
   "main": "server.js",

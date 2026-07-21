@@ -26,6 +26,7 @@ function publicState(room) {
     id: p.id,
     name: p.name,
     isHost: p.isHost,
+    role: p.role || 'participant',
     hasVoted: room.votes.has(p.id),
     vote: room.revealed ? (room.votes.get(p.id) ?? null) : null,
   }));
@@ -33,12 +34,18 @@ function publicState(room) {
   let average = null;
   let distribution = null;
   if (room.revealed) {
-    const numeric = Array.from(room.votes.values()).filter(v => typeof v === 'number');
+    // Collect only votes from non-spectators for the tally
+    const voterVotes = [];
+    for (const [pid, v] of room.votes.entries()) {
+      const p = room.participants.get(pid);
+      if (p && p.role !== 'spectator') voterVotes.push(v);
+    }
+    const numeric = voterVotes.filter(v => typeof v === 'number');
     if (numeric.length > 0) {
       average = Math.round((numeric.reduce((a, b) => a + b, 0) / numeric.length) * 10) / 10;
     }
     distribution = {};
-    for (const v of room.votes.values()) {
+    for (const v of voterVotes) {
       const key = String(v);
       distribution[key] = (distribution[key] || 0) + 1;
     }
@@ -64,8 +71,9 @@ function broadcast(code) {
 io.on('connection', (socket) => {
   let joinedCode = null;
 
-  socket.on('createRoom', ({ name }, cb) => {
+  socket.on('createRoom', ({ name, role }, cb) => {
     const trimmed = (name || '').trim().slice(0, 40) || 'Host';
+    const safeRole = role === 'spectator' ? 'spectator' : 'participant';
     const code = generateRoomCode();
     const room = {
       code,
@@ -76,7 +84,7 @@ io.on('connection', (socket) => {
       votes: new Map(),
       createdAt: Date.now(),
     };
-    room.participants.set(socket.id, { id: socket.id, name: trimmed, isHost: true });
+    room.participants.set(socket.id, { id: socket.id, name: trimmed, isHost: true, role: safeRole });
     rooms.set(code, room);
     socket.join(code);
     joinedCode = code;
@@ -84,7 +92,7 @@ io.on('connection', (socket) => {
     broadcast(code);
   });
 
-  socket.on('joinRoom', ({ code, name }, cb) => {
+  socket.on('joinRoom', ({ code, name, role }, cb) => {
     const roomCode = (code || '').trim().toUpperCase();
     const room = rooms.get(roomCode);
     if (!room) {
@@ -92,7 +100,8 @@ io.on('connection', (socket) => {
       return;
     }
     const trimmed = (name || '').trim().slice(0, 40) || 'Anon';
-    room.participants.set(socket.id, { id: socket.id, name: trimmed, isHost: false });
+    const safeRole = role === 'spectator' ? 'spectator' : 'participant';
+    room.participants.set(socket.id, { id: socket.id, name: trimmed, isHost: false, role: safeRole });
     socket.join(roomCode);
     joinedCode = roomCode;
     cb && cb({ ok: true, code: roomCode });
@@ -175,5 +184,5 @@ setInterval(() => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Planning Poker running at http://localhost:${PORT}`);
+  console.log(`Estimate Me running at http://localhost:${PORT}`);
 });
